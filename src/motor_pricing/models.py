@@ -17,7 +17,7 @@ from lightgbm import LGBMRegressor, early_stopping, log_evaluation
 from sklearn.model_selection import train_test_split
 
 from . import RANDOM_STATE
-from .features import GLMDesign, gbm_features
+from .features import GLM_CATEGORICAL, GLM_NUMERIC, GLMDesign, gbm_features
 
 FREQ_TARGET, FREQ_WEIGHT = "Frequency", "Exposure"
 SEV_TARGET, SEV_WEIGHT = "AvgClaim", "ClaimNb"
@@ -48,11 +48,16 @@ class NullModel:
 # GLMs (statsmodels -> full inference: standard errors, p-values, CIs)
 # --------------------------------------------------------------------------- #
 class _GLMBase:
-    family = None
+    """Shared GLM logic. ``categorical`` / ``numeric`` select the rating factors
+    (default: all GLM factors, see ``features.GLM_CATEGORICAL`` / ``GLM_NUMERIC``)."""
+
+    def __init__(self, categorical=None, numeric=None):
+        self.categorical = list(GLM_CATEGORICAL if categorical is None else categorical)
+        self.numeric = list(GLM_NUMERIC if numeric is None else numeric)
 
     def _design(self, df: pd.DataFrame, fit: bool, weight=None) -> pd.DataFrame:
         if fit:
-            self.design_ = GLMDesign().fit(df, weight)
+            self.design_ = GLMDesign(self.categorical, self.numeric).fit(df, weight)
         return self.design_.transform(df)
 
     def relativities(self, alpha: float = 0.05) -> pd.DataFrame:
