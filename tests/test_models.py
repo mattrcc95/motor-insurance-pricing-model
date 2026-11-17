@@ -32,7 +32,7 @@ def test_glm_design_reference_is_largest_exposure(clean):
 def test_gbm_features_types(clean):
     X = gbm_features(clean)
     assert X["Region"].dtype == "category"
-    assert X["AreaCode"].between(1, 6).all()
+    assert "Area" not in X.columns  # redundant with Density
 
 
 def test_frequency_glm_balance_property(clean):

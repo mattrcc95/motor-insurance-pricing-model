@@ -17,8 +17,6 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-AREA_ORDER = ["A", "B", "C", "D", "E", "F"]
-
 DRIVAGE_BINS = [17, 20, 25, 30, 40, 50, 70, np.inf]
 DRIVAGE_LABELS = ["18-20", "21-25", "26-30", "31-40", "41-50", "51-70", "71+"]
 
@@ -29,11 +27,12 @@ VEHPOWER_CAP = 9
 BONUSMALUS_CAP = 150
 
 GLM_CATEGORICAL = ["VehPowerGLM", "VehAgeGLM", "DrivAgeGLM", "VehBrand", "VehGas", "Region"]
-GLM_NUMERIC = ["AreaGLM", "BonusMalusGLM", "LogDensity"]
+# Area is not used: it is a coarse binning of Density (Spearman rho = 0.98, see notebook 02)
+GLM_NUMERIC = ["BonusMalusGLM", "LogDensity"]
 
 GBM_FEATURES = [
     "VehPower", "VehAge", "DrivAge", "BonusMalus", "Density",
-    "AreaCode", "VehBrand", "VehGas", "Region",
+    "VehBrand", "VehGas", "Region",
 ]
 GBM_CATEGORICAL = ["VehBrand", "VehGas", "Region"]
 
@@ -44,8 +43,6 @@ GBM_CATEGORICAL = ["VehBrand", "VehGas", "Region"]
 def glm_features(df: pd.DataFrame) -> pd.DataFrame:
     """Return the engineered rating factors used by the GLMs."""
     out = pd.DataFrame(index=df.index)
-    # Area A..F is ordered (rural -> urban); Noll et al. found a log-linear trend
-    out["AreaGLM"] = df["Area"].astype(str).map({a: i + 1 for i, a in enumerate(AREA_ORDER)}).astype(float)
 
     vp = df["VehPower"].clip(upper=VEHPOWER_CAP).astype(int).astype(str)
     vp = vp.where(vp != str(VEHPOWER_CAP), f"{VEHPOWER_CAP}+")
@@ -109,8 +106,7 @@ class GLMDesign:
 # --------------------------------------------------------------------------- #
 def gbm_features(df: pd.DataFrame) -> pd.DataFrame:
     """Raw rating factors for LightGBM (categoricals as pandas 'category')."""
-    out = df[[c for c in GBM_FEATURES if c != "AreaCode"]].copy()
-    out["AreaCode"] = df["Area"].astype(str).map({a: i + 1 for i, a in enumerate(AREA_ORDER)}).astype(int)
+    out = df[GBM_FEATURES].copy()
     for c in GBM_CATEGORICAL:
         if not isinstance(out[c].dtype, pd.CategoricalDtype):
             out[c] = out[c].astype("category")
