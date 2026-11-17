@@ -28,11 +28,17 @@ benchmarked against LightGBM, evaluated with exposure-weighted cross-validation
   - `features.py` - GLM feature engineering (binning, caps, logs, reference levels) and GBM features
   - `models.py` - `NullModel`, `FrequencyGLM`, `SeverityGLM`, `FrequencyGBM`, `SeverityGBM` (common `fit(df)` / `predict(df)`)
   - `metrics.py` - weighted Poisson/Gamma deviance, Lorenz curve, Gini, lift and double-lift tables
-  - `validation.py` - stratified train/test split, K-fold CV, scorers
+  - `validation.py` - stratified train/test split, K-fold CV, `fold_ids`, scorers
+  - `eda.py` - one-way frequency/severity tables with CIs, Cramér's V
+  - `explain.py` - model-agnostic partial dependence / ICE (works with any `predict(df)` model)
+  - `plotting.py` - shared style (fixed colours: GLM blue, GBM orange) and reusable charts
 - `notebooks/` - numbered, run in order (01 -> 06). Each one is the documented narrative.
+  01 ingestion/cleaning, 02 EDA, 03 frequency, 04 severity, 05 CV comparison + pure premium,
+  06 SHAP/PDP explainability.
+- `models/` - tuned GBM hyper-parameters written by notebooks 03/04 and read by 05/06 (git-ignored).
 - `tests/` - pytest suite on synthetic data.
 - `data/` - `raw/`, `processed/`, `openml_cache/`: generated, git-ignored.
-- `reports/figures/` - generated figures, git-ignored.
+- `reports/figures/` - generated figures, git-ignored. `docs/images/` holds the copies used by the README.
 
 ## Conventions (important)
 - **Notebook documentation standard**: every step is preceded by a markdown cell stating, in
@@ -46,6 +52,14 @@ benchmarked against LightGBM, evaluated with exposure-weighted cross-validation
 - Random seed: `motor_pricing.RANDOM_STATE = 42`.
 - Data is never committed.
 - One commit per logical step; end commit messages with the Co-Authored-By trailer.
+
+## Key modelling decisions
+- `Area` is dropped from both models (Spearman 0.98 with Density; notebook 02).
+- Frequency GLM: Poisson, log link, log(Exposure) offset; age/vehicle-age/power binned, BM capped at 150, log density.
+- Severity GLM: Gamma, log link, ClaimNb variance weights, **reduced to DrivAge bins + BonusMalus** (F-tests + CV, notebook 04).
+- Severity GBM: tree count chosen by 5-fold CV curves (no early stopping - inner split too noisy).
+- Gini/Lorenz merge tied predictions (a constant model must have Gini 0 regardless of row order).
+- Narrative text in notebooks quotes numbers from the outputs: after changing code, re-run and re-check the text.
 
 ## Key data decisions (see notebook 01)
 - `ClaimNb` is recomputed as the number of claims with a recorded amount in freMTPL2sev
