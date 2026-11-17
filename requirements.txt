@@ -1,0 +1,28 @@
+# Pinned versions tested on Python 3.14 (Windows 11).
+
+# Core data stack
+numpy==2.5.5
+pandas==3.1.1
+pyarrow==26.0.1
+scipy==1.18.1
+
+# Modelling
+scikit-learn==1.9.1
+statsmodels==0.15.0
+lightgbm==4.7.0
+
+# Explainability
+shap==0.54.1
+
+# Plotting
+matplotlib==3.11.2
+seaborn==0.13.2
+
+# Notebooks / kernel
+jupyterlab==4.6.6
+ipykernel==7.4.0
+nbconvert==7.17.2
+nbformat==5.11.1
+
+# Testing
+pytest==9.2.0

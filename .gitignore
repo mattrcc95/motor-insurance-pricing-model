@@ -1,0 +1,25 @@
+# Environment
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# Data is downloaded at runtime from OpenML and never committed
+data/raw/
+data/processed/
+data/openml_cache/
+
+# Generated artefacts
+models/
+reports/figures/*.png
+!reports/figures/.gitkeep
+
+# Notebooks
+.ipynb_checkpoints/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
