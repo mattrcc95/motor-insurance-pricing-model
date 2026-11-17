@@ -64,11 +64,14 @@ def lorenz_curve(y_true, y_pred, weight) -> tuple[np.ndarray, np.ndarray]:
     cumulative share of the observed loss (y_true * weight).
     """
     y, p, w = (np.asarray(a, float) for a in (y_true, y_pred, weight))
-    order = np.argsort(p, kind="mergesort")
-    w_sorted = w[order]
-    loss_sorted = (y * w)[order]
-    cum_w = np.concatenate([[0.0], np.cumsum(w_sorted)]) / w_sorted.sum()
-    cum_loss = np.concatenate([[0.0], np.cumsum(loss_sorted)]) / loss_sorted.sum()
+    # Policies with *tied* predictions are merged into one point: the model cannot
+    # order them, so the curve must be a straight segment across the tie (otherwise
+    # the result would depend on the arbitrary row order of the data).
+    uniq, inv = np.unique(p, return_inverse=True)
+    w_grp = np.bincount(inv, weights=w, minlength=len(uniq))
+    loss_grp = np.bincount(inv, weights=y * w, minlength=len(uniq))
+    cum_w = np.concatenate([[0.0], np.cumsum(w_grp)]) / w_grp.sum()
+    cum_loss = np.concatenate([[0.0], np.cumsum(loss_grp)]) / loss_grp.sum()
     return cum_w, cum_loss
 
 

@@ -1,3 +1,4 @@
+import pandas as pd
 import numpy as np
 import pytest
 
@@ -77,3 +78,22 @@ def test_split_and_cv(clean):
     null_d2 = scores.query("model == 'Null' and metric == 'deviance_explained'")["value"]
     assert np.allclose(null_d2, 0)
     assert ("poisson_deviance", "mean") in summary.columns
+
+
+def test_fold_ids_match_cross_validate(clean):
+    from motor_pricing.validation import fold_ids
+
+    ids = fold_ids(clean, n_splits=3)
+    assert set(ids) == {1, 2, 3}
+    scores, oof = cross_validate(
+        clean, {}, frequency_scores, null_factory=lambda: NullModel("Frequency", "Exposure"),
+        n_splits=3, verbose=False,
+    )
+    # the Null prediction is constant inside a fold -> one unique value per fold id
+    per_fold = pd.Series(oof["Null"].to_numpy()).groupby(ids).nunique()
+    assert (per_fold == 1).all()
+
+
+def test_null_model_ignores_zero_weight_rows(clean):
+    m = NullModel("AvgClaim", "ClaimNb").fit(clean)  # AvgClaim is NaN where ClaimNb == 0
+    assert np.isfinite(m.mean_)

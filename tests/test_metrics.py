@@ -50,6 +50,12 @@ def test_gini_random_vs_oracle():
     assert normalised_gini(Y, Y, W) == pytest.approx(1.0)
 
 
+def test_gini_of_constant_prediction_is_zero_regardless_of_row_order():
+    y = np.sort(Y)  # data ordered by outcome: a tie-breaking bug would show up here
+    assert gini_index(y, np.ones_like(y), np.ones_like(y)) == pytest.approx(0.0, abs=1e-12)
+    assert gini_index(y[::-1], np.ones_like(y), np.ones_like(y)) == pytest.approx(0.0, abs=1e-12)
+
+
 def test_gini_invariant_to_monotone_transform():
     assert gini_index(Y, MU, W) == pytest.approx(gini_index(Y, np.log(MU) * 3 + 7, W))
 

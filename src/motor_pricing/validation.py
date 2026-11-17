@@ -22,6 +22,15 @@ def _claim_strata(df: pd.DataFrame) -> np.ndarray:
     return df["ClaimNb"].clip(upper=2).to_numpy()
 
 
+def fold_ids(df: pd.DataFrame, n_splits: int = 5, random_state: int = RANDOM_STATE) -> np.ndarray:
+    """Fold number (1..n_splits) of every row, identical to the folds of :func:`cross_validate`."""
+    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+    out = np.zeros(len(df), dtype=int)
+    for fold, (_, va_idx) in enumerate(skf.split(df, _claim_strata(df)), start=1):
+        out[va_idx] = fold
+    return out
+
+
 def split_train_test(df: pd.DataFrame, test_size: float = 0.2,
                      random_state: int = RANDOM_STATE) -> tuple[pd.DataFrame, pd.DataFrame]:
     train, test = train_test_split(

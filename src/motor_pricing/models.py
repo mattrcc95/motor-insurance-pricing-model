@@ -37,7 +37,8 @@ class NullModel:
         self.target, self.weight = target, weight
 
     def fit(self, df: pd.DataFrame) -> "NullModel":
-        self.mean_ = float(np.average(df[self.target], weights=df[self.weight]))
+        d = df[df[self.weight] > 0]  # e.g. severity: only policies with claims
+        self.mean_ = float(np.average(d[self.target], weights=d[self.weight]))
         return self
 
     def predict(self, df: pd.DataFrame) -> np.ndarray:
