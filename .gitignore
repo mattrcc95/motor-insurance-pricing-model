@@ -1,25 +1,23 @@
-# Environment
-.venv/
-__pycache__/
-*.pyc
-*.egg-info/
-.pytest_cache/
+# Allowlist: the remote only holds what is needed to read the project on GitHub
+# (README + executed notebooks + README figures). Everything else - source package,
+# tests, environment files, data, generated artefacts - stays local.
 
-# Data is downloaded at runtime from OpenML and never committed
-data/raw/
-data/processed/
-data/openml_cache/
+# 1. ignore everything at the top level
+/*
 
-# Generated artefacts
-models/
-reports/figures/*.png
-!reports/figures/.gitkeep
+# 2. re-include the minimum
+!/.gitignore
+!/README.md
 
-# Notebooks
+!/notebooks/
+/notebooks/*
+!/notebooks/*.ipynb
+
+!/docs/
+/docs/*
+!/docs/images/
+/docs/images/*
+!/docs/images/*.png
+
+# 3. never commit notebook checkpoints, even inside allowed folders
 .ipynb_checkpoints/
-
-# OS / IDE
-.DS_Store
-Thumbs.db
-.idea/
-.vscode/
